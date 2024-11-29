@@ -25,11 +25,10 @@ class LSTM(nn.Module):
 
     def forward(self, previous_words):
         """ forward pass through network"""
+
         embeddings = self.embedding(previous_words)
         output, (H,C) = self.lstm(embeddings)
-
         fc_out = self.fc(output)
-
 
         return F.log_softmax(fc_out, dim = -1)
 
@@ -59,7 +58,7 @@ class LSTM(nn.Module):
 
                 loss.backward()
                 #gradient clipping helps avoid blowup, which was a problem with training
-                torch.nn.utils.clip_grad_norm_(self.parameters(), max_norm=4)  
+                torch.nn.utils.clip_grad_norm_(self.parameters(), max_norm=3)  
                 optimizer.step()
    
                 #update metrics

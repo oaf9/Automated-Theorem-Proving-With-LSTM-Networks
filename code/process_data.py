@@ -57,7 +57,7 @@ def generate_token_mapping(proofs):
     tokens = list(itertools.chain.from_iterable(proofs)) #get all tokens appearing in the entire dataset as a single list
     # note that this is too inneficient for a lot of input, but it works out alright given our relatively small dataset
     values = set(tokens)
-    keys = range(1, len(set(tokens))+1)
+    keys = range(2, len(set(tokens))+2)
 
     int_to_word = dict(zip(keys, values)) #assign an integer to each token
     word_to_int =  dict(zip(values, keys))  #it's also important to know the inverse mapping
@@ -70,7 +70,7 @@ def tokenize(proof):
     """
     output = []
 
-    for i in range(2,len(proof)):
+    for i in range(2,len(proof)+1):
         output.append(proof[0:i])
     return output
 
@@ -81,10 +81,16 @@ def generate_sequences(proof_dataset):
     """
     tokenized_proofs = []
     word_to_int, int_to_word = generate_token_mapping(proof_dataset)
+    word_to_int['<eod>'] = 1; int_to_word[1] = '<eod>'
+    word_to_int['<pad>'] = 0; int_to_word[0] = '<pad>'
     f = lambda word : word_to_int[word]
 
     for proof in proof_dataset:
-        tokenized_proofs.append([f(word) for word in proof])
+
+        proof_sequenced = tokenize(proof)
+        for sequence in proof_sequenced:
+            tokenized_proofs.append([f(word) for word in sequence]) 
+        tokenized_proofs.append([f(word) for word in sequence + ['<eod>']])
 
     return word_to_int, int_to_word, tokenized_proofs
 
@@ -95,13 +101,14 @@ def makeXy(sequenced_proofs):
     """
     Make the sequences into input sequences and labels by setting the label as the next word in the sequence
     """
-    X, y = [],[]
+    X, sequence_lengths, y = [],[],[]
 
     for s in sequenced_proofs:
         X.append(s[0:-1])
-        y.append(s[1:])
+        sequence_lengths.append(len(s)-1)
+        y.append(s[-1])
 
-    return X, y
+    return pad(X, value = 0), sequence_lengths, y
 
 
 def pad(sequences, value):
@@ -112,11 +119,22 @@ def pad(sequences, value):
     max_length = max([len(s) for s in sequences])
 
     for s in sequences:
-        
         s += [value for i in range(0, max_length-len(s))]
 
     return sequences
 
+
+def padTest(sequences, value, length):
+    """
+    Pad the input sequences with a dumy value so that they all have the same length
+    """
+    #the length of the longest sequence n the set 
+    max_length = length
+
+    for s in sequences:
+        s += [value for i in range(0, max_length-len(s))]
+
+    return sequences
 
 
 
