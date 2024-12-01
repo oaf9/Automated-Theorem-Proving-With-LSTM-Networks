@@ -52,7 +52,6 @@ class LSTM(nn.Module):
                 # forward has shape[B,L,V] and targets has shape [B,L] which aren't the dimensions that loss fucntions except.
                 # we can flatten the arrays to get something typical: [B*L, V] and [B*L]
                 output = output.view(-1, self.vocab_size)
-                y = y.view(-1)
 
                 loss = loss_function(output, y)
 

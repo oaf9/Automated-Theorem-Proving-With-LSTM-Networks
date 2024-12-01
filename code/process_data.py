@@ -22,21 +22,24 @@ def LoadLogicData(mode = 'w'):
     for index, proof in enumerate(logic_data):
         #This is O(n^2) but the data set is not large so it's still very quick
         proof = proof.replace('¬', '¬ ') #we have to do this to be able to consider negation as a seperate word
-        proof = proof.replace('c→', 'c →') #there are a few typos where there are no spaces between arrows and letters. 
+        proof = proof.replace('c→', 'c →') #there are a few typos where there are no spaces between arrows and letters.
+        proof = proof.replace('(', '( ') 
+        proof = proof.replace(')', ' )') 
         proof = re.split(delimiters, proof)
         proof  = [s.lower() for s in proof]
         
         if mode == 'w':
 
-            proof  = "".join([s[s.find('.')+ 1 : s.find('(from')-1]  if s.find('(from') != -1 else s[s.find('.')+1:] for s in proof])[1:].split()
+            proof  = "".join([s[s.find('.')+ 1 : s.find('( from')-1]  if s.find('( from') != -1 else s[s.find('.')+1:] for s in proof])[1:].split()
 
             proof = [s[:-1] if s[-1] == ":" else s for s in proof]
-            proof = [s.replace("(", '') for s in proof]
-            proof = [s.replace(")", '') for s in proof]
+            #we actually need to save parenthesis to keep the syntactic meaning
+            #proof = [s.replace("(", '( ') for s in proof]
+            #proof = [s.replace(")", ' )') for s in proof]
 
         else:
             #in order to split up by lines rather than words
-            proof =  [s[s.find('.')+ 2 : s.find('(from')-1]  if s.find('(from') != -1 else s[s.find('.')+2:] for s in proof]
+            proof =  [s[s.find('.')+ 2 : s.find('( from')-1]  if s.find('( from') != -1 else s[s.find('.')+2:] for s in proof]
 
         if proof[0] == "ere's": #this is just to catch one badly formatted proof
             logic_data[index] = proof[9:]
@@ -90,6 +93,7 @@ def generate_sequences(proof_dataset):
         proof_sequenced = tokenize(proof)
         for sequence in proof_sequenced:
             tokenized_proofs.append([f(word) for word in sequence]) 
+        #add the entire proof where the target is the stop token
         tokenized_proofs.append([f(word) for word in sequence + ['<eod>']])
 
     return word_to_int, int_to_word, tokenized_proofs
@@ -111,12 +115,13 @@ def makeXy(sequenced_proofs):
     return pad(X, value = 0), sequence_lengths, y
 
 
-def pad(sequences, value):
+def pad(sequences, value, max_length = None):
     """
     Pad the input sequences with a dumy value so that they all have the same length
     """
     #the length of the longest sequence n the set 
-    max_length = max([len(s) for s in sequences])
+    if max_length == None:
+        max_length = max([len(s) for s in sequences])
 
     for s in sequences:
         s += [value for i in range(0, max_length-len(s))]
