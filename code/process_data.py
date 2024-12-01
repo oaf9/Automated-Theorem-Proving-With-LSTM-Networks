@@ -142,5 +142,61 @@ def padTest(sequences, value, length):
     return sequences
 
 
+def makeSplit(X, lengths, y, percentage, seed = 1999):
+
+    """
+    Split data into train and test data. This is not the best way to do this, 
+    but the data set is small enough that this isn't going to cause a bottle neck.
+    """
+
+    if percentage  <= 0 or percentage  > 1:
+        raise ValueError("Percentage must be greater than 0 and  less that or equal to 1.")
+    import random
+    random.seed(seed)
+
+    train_size = round(len(X)*percentage)
+    train_indices = random.sample(range(0,len(X)), train_size)
+    X_train = [X[i] for i in train_indices]
+    train_lengths = [lengths[i] for i in train_indices]
+    y_train = [y[i] for i in train_indices]
+    X_test = []
+    test_lengths = []
+    y_test = []
+
+    for i in range(0, len(X)):
+        if not i in train_indices:
+            X_test.append(X[i])
+            test_lengths.append(lengths[i])
+            y_test.append(y[i])
+
+    return X_train, X_test, train_lengths, test_lengths, y_train, y_test
+
+
+def load_test_data():
+    
+    import pandas as pd
+    test_data = pd.read_csv("hf://datasets/afifio/PropositionalProofs/proofs.csv").to_numpy()[:,0]
+    test_data = [s.replace('\n', ' ').lower() for s in test_data]
+    test_data = [s.replace(':', ' ').lower() for s in test_data]
+    test_data = [s.replace('¬', '¬ ').lower() for s in test_data]
+    test_data = [s.replace('(', '( ').lower() for s in test_data]
+    test_data = [s.replace(')', ' )').lower() for s in test_data]
+    for i in range(0,10):
+        test_data = [s.replace(f'{i}.', '') for s in test_data]
+
+    test_data = [s.split() for s in test_data]
+    
+    return test_data
+
+
+def process_test_data(test_proofs, map):
+
+    f = lambda word : map[word]
+
+    test_proofs = [ [f(token) for token in proof ] for proof in test_proofs ]
+    return [len(proof) for proof in test_proofs], test_proofs
+
+
+
 
 
