@@ -1,6 +1,7 @@
 import matplotlib.pyplot as plt
 
-def plotResults(num_epochs, training_accuracy, validation_accuracy, training_loss, validation_loss):
+def plotResults(num_epochs, training_accuracy, 
+                validation_accuracy, training_loss, validation_loss):
 
     plt.rcParams.update({'font.size': 16})
 
@@ -30,7 +31,8 @@ def plotResults(num_epochs, training_accuracy, validation_accuracy, training_los
     return fig, axs
 
 
-def generate_proofs(lstm, test_data, test_sequence_lengths,  int_to_word, path):
+def generate_proofs(lstm, test_data, test_sequence_lengths,  
+                    int_to_word, save = False, path = None):
     import torch as t
     import numpy as np
     generated_proofs = []
@@ -53,13 +55,17 @@ def generate_proofs(lstm, test_data, test_sequence_lengths,  int_to_word, path):
         proof = lstm.generateProof(sample, length)[0].tolist()
         proof = [f(t) for t in proof]
         proof = ''.join(proof)
-        generated_proofs.append(proof)
+        generated_proofs.append(proof.replace("<pad>", ''))
 
     generated_proofs[0].replace("<pad>", '')
     print("Sample Output")
     print(" ")
     print(generated_proofs[0])
 
-    np.savetxt(path + '.csv', np.array(generated_proofs), delimiter = ',')
+    if save:
+        try: 
+            np.savetxt(path + '.csv', np.array( ["Proof"] +generated_proofs), delimiter = ',', fmt='%s' )
+        except:
+            print(f"Unable to save file to path: {path}")
 
     return generated_proofs
