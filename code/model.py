@@ -152,8 +152,7 @@ class LSTM(nn.Module):
         with torch.no_grad():
 
             while True:
-
-                print(premises[0])
+                
                 next_token = self.generateToken(premises,l)
                 premises[0][l] = next_token
                 l += 1
