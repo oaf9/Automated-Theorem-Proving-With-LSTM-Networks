@@ -34,10 +34,8 @@ def LoadLogicData(mode = 'w'):
 
             proof = [s[:-1] if s[-1] == ":" else s for s in proof]
             #we actually need to save parenthesis to keep the syntactic meaning
-            #proof = [s.replace("(", '( ') for s in proof]
-            #proof = [s.replace(")", ' )') for s in proof]
 
-        else:
+        else: 
             #in order to split up by lines rather than words
             proof =  [s[s.find('.')+ 2 : s.find('( from')-1]  if s.find('( from') != -1 else s[s.find('.')+2:] for s in proof]
 
@@ -45,7 +43,16 @@ def LoadLogicData(mode = 'w'):
             logic_data[index] = proof[9:]
         else:
             logic_data[index] = proof
-            
+
+    
+    # A lot of the proofs in this data set are duplciates, and they need to be cleaned out. 
+    unique_proofs = []
+    for proof in logic_data :
+        if not proof in unique_proofs:
+            unique_proofs.append(proof)
+
+    logic_data = unique_proofs
+
     return logic_data
 
 
