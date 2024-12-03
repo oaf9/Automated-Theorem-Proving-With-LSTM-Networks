@@ -1,11 +1,16 @@
-import torch as t
-import torch.utils.data  as data
-import matplotlib.pyplot as plt
+try:
+    import torch as t
+    import torch.utils.data  as data
+    import matplotlib.pyplot as plt
 
-import model
-import evaluate
-import process_data
-
+    import model
+    import evaluate
+    import process_data
+except: 
+    print("""You Do not have the required Modules to Run this Script.\n
+          Required Modules: matplotlib, torch, numpy, huggingface_hub\n""")
+    print("Run pip install huggingface_hub")
+    exit(1)
 
 
 #load the data from hugging face mode = 'w' means that we are tokenizing words rather than characters or sentences. 

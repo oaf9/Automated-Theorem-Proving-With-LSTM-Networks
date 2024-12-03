@@ -1,10 +1,23 @@
-import matplotlib.pyplot as plt
-import model
-import process_data
-import torch as t
-import torch.utils.data  as data
-import numpy as np
+try:
+    import matplotlib.pyplot as plt
+    import model
+    import process_data
+    import torch as t
+    import torch.utils.data  as data
+    import numpy as np
+except: 
+    print("""You Do not have the required Modules to Run this Script.\n
+          Required Modules: matplotlib, torch, numpy, huggingface_hub\n""")
+    print("Run pip install huggingface_hub")
+    exit(1)
 
+"""
+The ethos of this script is as follows:
+We consider small training data sets, and iteratively increase
+both the set of training data, and the size of the model.
+This demonstrates a significant upward trend in performance with respect to both values
+As such, this suggests that, with mroe data and larger models, high performance can be achieved. 
+"""
 
 #load the data from hugging face mode = 'w' means that we are tokenizing words rather than characters or sentences. 
 proofs_dataset = process_data.LoadLogicData(mode = 'w') 
@@ -25,6 +38,7 @@ training_sizes = []
 
 
 for p in percentages:
+    # for each percentage we train a model on a larger split of data.
 
     X_train, X_val, train_lengths, val_lengths, y_train, y_val = process_data.makeSplit(X,sequence_lengths, y, p)
 
@@ -45,7 +59,7 @@ for p in percentages:
 
 
     vocab_size = len(word_to_int)
-    hidden_size = int(8*p + 1 )
+    hidden_size = int(8*p + 1 ) #increase the size of the mdoel at each turn
     num_layers = 3
     epochs = 10
     loss_function = t.nn.CrossEntropyLoss(reduction = "mean")
