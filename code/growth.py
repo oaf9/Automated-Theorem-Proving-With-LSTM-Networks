@@ -32,9 +32,13 @@ X, sequence_lengths,y = process_data.makeXy(sequenced_proofs)
 percentages = np.arange(0.1, 1, .1)
 
 
-accuracies = []
+accuracies_traindata = []
+accuracies_size = []
 model_sizes = []
 training_sizes = []
+
+
+
 
 
 for p in percentages:
@@ -59,9 +63,9 @@ for p in percentages:
 
 
     vocab_size = len(word_to_int)
-    hidden_size = int(8*p + 1 ) #increase the size of the mdoel at each turn
-    num_layers = 3
-    epochs = 10
+    hidden_size = 8 #increase the size of the mdoel at each turn
+    num_layers = 2
+    epochs = 20
     loss_function = t.nn.CrossEntropyLoss(reduction = "mean")
     seq_length = len(X[0])
 
@@ -77,23 +81,73 @@ for p in percentages:
                                                 optimizer, 
                                                 validation_data)
     
-    accuracies.append(validation_accuracies[-1])
-    model_sizes.append(hidden_size)
+    accuracies_traindata.append(validation_accuracies[-1])
     training_sizes.append(len(X_train))
 
 
-a = accuracies
-S = model_sizes
-h = training_sizes
 
-plt.scatter(S, h, alpha = np.array(a), color = 'red', s = 50)
-plt.title("Validation Accuracy")
-plt.xlabel("Training Size (in untis of Hidden Dimensions)")
-plt.ylabel("hidden Size  Factor")
 
-Β, Β_0 = np.polyfit(S, h, 1)
 
-# adding the regression line to the scatter plot
-plt.plot(S, Β*np.array(S) + Β_0, color = 'red')
 
-plt.grid()
+
+for i in range(2, 10):
+    # for each percentage we train a model on a larger split of data.
+
+    X_train, X_val, train_lengths, val_lengths, y_train, y_val = process_data.makeSplit(X,sequence_lengths, y, .9)
+
+    #train data
+    X_train = t.tensor(X_train, dtype = t.int64)
+    train_lengths =  t.tensor(train_lengths, dtype = t.int64)
+    y_train = t.tensor(y_train, dtype = t.int64)
+
+    train_loader = data.DataLoader(data.TensorDataset(X_train,train_lengths, y_train),
+                                batch_size = 100) #model expects training data to be batched a dataLoader
+
+    #validation data
+    X_val = t.tensor(X_val, dtype = t.int64)
+    val_lengths =  t.tensor(val_lengths, dtype = t.int64)
+    y_val = t.tensor(y_val, dtype = t.int64)
+
+    validation_data = (X_val, val_lengths, y_val) # this model will expect validation data to be a tuple
+
+
+    vocab_size = len(word_to_int)
+    hidden_size = i//2 #increase the size of the mdoel at each turn
+    num_layers = 2
+    epochs = 20
+    loss_function = t.nn.CrossEntropyLoss(reduction = "mean")
+    seq_length = len(X[0])
+
+    lstm = model.LSTM(seq_length = seq_length, 
+                hidden_size = hidden_size, 
+                num_layers = num_layers, 
+                vocab_size = vocab_size)
+
+    optimizer = t.optim.Adam(params = lstm.parameters(), lr = .01)
+    _, _, validation_accuracies, _ = lstm.Train(train_loader, 
+                                                epochs, 
+                                                loss_function, 
+                                                optimizer, 
+                                                validation_data)
+    
+    accuracies_size.append(validation_accuracies[-1])
+    model_sizes.append(i)
+
+fig, axs = plt.subplots(1,2, figsize=(20, 6))
+
+fig.suptitle("Performance Accuracy With Respect to Size of Data and Number of Paramaters.")
+fig.subplots_adjust(hspace = .5, wspace=.2)
+
+axs[0].scatter(model_sizes, accuracies_size, color = 'teal', label = "Train", s = 60)
+axs[0].set_title("Accuracy and Size of Hidden Dimention")
+axs[0].set_xlabel("Size")
+axs[0].set_ylabel("Token Prediction Accuracy")
+axs[0].grid()
+
+axs[1].scatter(training_sizes, accuracies_traindata, color = 'darkred', label = "Train", s = 70)
+axs[1].set_title("Accuracy and Size of Training Data")
+axs[1].set_xlabel("Number of Samples")
+axs[1].set_ylabel("Token Prediction Accuracy")
+axs[1].grid()
+
+plt.show()

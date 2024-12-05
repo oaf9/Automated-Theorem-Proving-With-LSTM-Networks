@@ -20,7 +20,7 @@ proofs_dataset = process_data.LoadLogicData(mode = 'w')
 word_to_int, int_to_word, sequenced_proofs = process_data.generate_sequences(proofs_dataset)
 
 #split data into input and label by setting label equal to next word.
-#sequence length is the length of eqch sequence, this allows us to pack them during training. 
+#sequencepython length is the length of eqch sequence, this allows us to pack them during training. 
 X, sequence_lengths,y = process_data.makeXy(sequenced_proofs)
 
 X_train, X_val, train_lengths, val_lengths, y_train, y_val = process_data.makeSplit(X,sequence_lengths, y, .95)

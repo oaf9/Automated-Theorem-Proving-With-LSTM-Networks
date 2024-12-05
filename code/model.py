@@ -19,7 +19,7 @@ class LSTM(nn.Module):
         self.embedding = nn.Embedding(vocab_size, hidden_size)
 
         #initilize an lstm layer
-        self.lstm = nn.LSTM(hidden_size, hidden_size, num_layers, batch_first = True)
+        self.lstm = nn.LSTM(hidden_size, hidden_size, num_layers, dropout = 0, batch_first = True)
         
         #output hidden layer
         self.fc = nn.Linear(hidden_size, self.vocab_size)
