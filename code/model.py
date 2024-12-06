@@ -10,7 +10,7 @@ class LSTM(nn.Module):
         super(LSTM, self).__init__()
         #should probably initilize the hidden states
         self.seq_length = seq_length
-        self.embedding_dim = 30
+        self.embedding_dim = 40
         self.hidden_size = hidden_size
         self.vocab_size = vocab_size
         self.num_layers = num_layers
@@ -89,6 +89,10 @@ class LSTM(nn.Module):
         validation_losses = []
         training_accuracies = []
         training_losses = []
+
+
+
+        
 
         for epoch in range(epochs): # for each epoch
 

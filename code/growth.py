@@ -63,9 +63,9 @@ for p in percentages:
 
 
     vocab_size = len(word_to_int)
-    hidden_size = 8 #increase the size of the mdoel at each turn
+    hidden_size = 60 #increase the size of the mdoel at each turn
     num_layers = 2
-    epochs = 20
+    epochs = 6
     loss_function = t.nn.CrossEntropyLoss(reduction = "mean")
     seq_length = len(X[0])
 
@@ -90,7 +90,7 @@ for p in percentages:
 
 
 
-for i in range(2, 10):
+for i in range(10, 110, 10):
     # for each percentage we train a model on a larger split of data.
 
     X_train, X_val, train_lengths, val_lengths, y_train, y_val = process_data.makeSplit(X,sequence_lengths, y, .9)
@@ -112,9 +112,9 @@ for i in range(2, 10):
 
 
     vocab_size = len(word_to_int)
-    hidden_size = i//2 #increase the size of the mdoel at each turn
+    hidden_size = i #increase the size of the mdoel at each turn
     num_layers = 2
-    epochs = 20
+    epochs = 6
     loss_function = t.nn.CrossEntropyLoss(reduction = "mean")
     seq_length = len(X[0])
 
