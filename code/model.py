@@ -10,36 +10,54 @@ class LSTM(nn.Module):
         super(LSTM, self).__init__()
         #should probably initilize the hidden states
         self.seq_length = seq_length
-        self.hidden_dim = hidden_size
+        self.embedding_dim = 30
+        self.hidden_size = hidden_size
         self.vocab_size = vocab_size
         self.num_layers = num_layers
 
         #we need to embed the words, a rule of thumb is that the 
         # embedding has the fourth root of the size of the vocabulary
-        self.embedding = nn.Embedding(vocab_size, hidden_size)
+        self.embedding = nn.Embedding(vocab_size, self.embedding_dim)
 
         #initilize an lstm layer
-        self.lstm = nn.LSTM(hidden_size, hidden_size, num_layers, dropout = 0, batch_first = True)
+        self.lstm = nn.LSTM(self.embedding_dim, hidden_size, num_layers, dropout = 0, batch_first = True)
         
         #output hidden layer
         self.fc = nn.Linear(hidden_size, self.vocab_size)
 
-    def forward(self, X, sequence_lengths):
+
+
+    def init_hidden(self, batch_size):
+
+        """Initialize the hidden states to zeros: this helps with 
+           stability during inference. and trainiing
+        """
+        h0 = torch.zeros(self.num_layers, batch_size, self.hidden_size )
+        c0 = torch.zeros(self.num_layers, batch_size, self.hidden_size )
+
+        return (h0, c0)
+
+
+    def forward(self, X, sequence_lengths, h_c = None):
         """ forward pass through network"""
 
         X = self.embedding(X)
+
+        if(h_c == None):
+            h_c = self.init_hidden(len(X))
+        
 
         X = pack_padded_sequence(X, sequence_lengths, 
                                  batch_first = True, 
                                  enforce_sorted = False)
 
 
-        X, (H,C) = self.lstm(X)
+        X, (H,C) = self.lstm(X, h_c)
         X, _ = pad_packed_sequence(X, batch_first = True)
 
         fc_out = self.fc(X)
 
-        return F.log_softmax(fc_out, dim = -1)
+        return F.log_softmax(fc_out, dim = -1), (H,C)
     
 
     def predict(self, validation_data, loss_function):
@@ -51,7 +69,7 @@ class LSTM(nn.Module):
 
         X, l, y = validation_data
 
-        predictions = self.forward(X, l)
+        predictions, _ = self.forward(X, l)
 
         predictions = predictions[range(len(X)), l-1]
         predictions = predictions.view(-1, self.vocab_size)
@@ -85,7 +103,7 @@ class LSTM(nn.Module):
                 X, sequence_lengths, y = data
 
                 optimizer.zero_grad() # zero gradients to avoid blowup
-                output = self.forward(X, sequence_lengths)
+                output, _ = self.forward(X, sequence_lengths, self.init_hidden(len(X)))
 
                 output = output[range(len(X)), sequence_lengths-1]
 
@@ -138,22 +156,25 @@ class LSTM(nn.Module):
 
 
     
-    def generateToken(self, x,l):
+    def generateToken(self, x,l, hidden_state):
         "predict the next token from a sequence"
 
         with torch.no_grad():
+
             #this will be the last item in the prediciton vector
-            predicted_sequence = self.forward(x,l)
+            predicted_sequence, hidden_state = self.forward(x,l, hidden_state)
             predicted_sequence = predicted_sequence[:,-1,:]
-            return torch.argmax(predicted_sequence, dim = 1)[0] #return argmax{log(p_i) w.r.t i}
+            return torch.argmax(predicted_sequence, dim = 1)[0], hidden_state #return argmax{log(p_i) w.r.t i}
         
     def generateProof(self, premises, l):
 
         with torch.no_grad():
 
+            hidden_state = self.init_hidden(len(premises))
+
             while True:
                 
-                next_token = self.generateToken(premises,l)
+                next_token, hidden_state = self.generateToken(premises,l, hidden_state)
                 premises[0][l] = next_token
                 l += 1
                 #break condition ... we won't won't predict anything longer than
