@@ -45,9 +45,9 @@ validation_data = (X_val, val_lengths, y_val) # this model will expect validatio
 
 
 vocab_size = len(word_to_int)
-hidden_size = 8
-num_layers = 3
-epochs = 40
+hidden_size = 120
+num_layers = 2
+epochs = 25
 loss_function = t.nn.CrossEntropyLoss(reduction = "mean")
 seq_length = len(X[0])
 
