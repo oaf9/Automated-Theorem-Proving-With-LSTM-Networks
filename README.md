@@ -5,6 +5,5 @@ You can replicate the results obtained in the paper or play with the model
 by running the cells in the interactive Notebook. 
 If you don't want to use the notebook, you can also train the model by running train_model.py as a script. 
 run growth.py to replicate Figure 5. 
-
-
+If you are interested in using this code for academic or professional purposes, please cite this repository.
 
